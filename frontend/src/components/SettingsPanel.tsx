@@ -7,43 +7,63 @@ interface Props {
 
 export function SettingsPanel({ config, onClose }: Props) {
   return (
-    <div className="panel">
-      <header>
-        <h2>Settings</h2>
-        <button className="secondary" onClick={onClose}>
+    <div
+      className="fixed right-0 top-0 z-50 flex h-full w-[360px] max-w-[100vw] flex-col overflow-y-auto border-l-2 border-[#1e3a8a] bg-[#141824] p-6 text-foreground shadow-[-4px_0_12px_rgba(0,0,0,0.4)]"
+      style={{ borderRadius: "0px" }}
+    >
+      <header className="mb-4 flex items-center justify-between">
+        <h2 className="m-0 text-[15px] font-semibold">Settings</h2>
+        <button
+          type="button"
+          onClick={onClose}
+          className="border border-[#334155] bg-transparent px-3 py-1 text-sm text-foreground transition-colors hover:border-[#1e3a8a]"
+          style={{ borderRadius: "0px" }}
+        >
           Close
         </button>
       </header>
 
       {!config ? (
-        <p>Loading…</p>
+        <p className="text-muted-foreground">Loading…</p>
       ) : (
         <>
-          <div className="row">
-            <label>App name</label>
-            <code>{config.appName}</code>
+          <div className="mb-4 flex flex-col gap-1">
+            <label className="text-xs text-muted-foreground">App name</label>
+            <code className="break-all rounded-none border border-[#334155] bg-[#1e293b] px-2 py-1 text-sm">
+              {config.appName}
+            </code>
           </div>
-          <div className="row">
-            <label>Environment</label>
-            <code>{config.environment}</code>
+          <div className="mb-4 flex flex-col gap-1">
+            <label className="text-xs text-muted-foreground">Environment</label>
+            <code className="break-all rounded-none border border-[#334155] bg-[#1e293b] px-2 py-1 text-sm">
+              {config.environment}
+            </code>
           </div>
-          <div className="row">
-            <label>AI provider</label>
-            <code>{config.aiProvider}</code>
+          <div className="mb-4 flex flex-col gap-1">
+            <label className="text-xs text-muted-foreground">AI provider</label>
+            <code className="break-all rounded-none border border-[#334155] bg-[#1e293b] px-2 py-1 text-sm">
+              {config.aiProvider}
+            </code>
           </div>
-          <div className="row">
-            <label>Model</label>
-            <code>{config.model}</code>
+          <div className="mb-4 flex flex-col gap-1">
+            <label className="text-xs text-muted-foreground">Model</label>
+            <code className="break-all rounded-none border border-[#334155] bg-[#1e293b] px-2 py-1 text-sm">
+              {config.model}
+            </code>
           </div>
-          <div className="row">
-            <label>Streaming</label>
-            <code>{config.streamingEnabled ? "enabled" : "disabled"}</code>
+          <div className="mb-4 flex flex-col gap-1">
+            <label className="text-xs text-muted-foreground">Streaming</label>
+            <code className="break-all rounded-none border border-[#334155] bg-[#1e293b] px-2 py-1 text-sm">
+              {config.streamingEnabled ? "enabled" : "disabled"}
+            </code>
           </div>
-          <div className="row">
-            <label>Authentication</label>
-            <code>{config.authEnabled ? "enabled" : "placeholder"}</code>
+          <div className="mb-4 flex flex-col gap-1">
+            <label className="text-xs text-muted-foreground">Authentication</label>
+            <code className="break-all rounded-none border border-[#334155] bg-[#1e293b] px-2 py-1 text-sm">
+              {config.authEnabled ? "enabled" : "placeholder"}
+            </code>
           </div>
-          <p style={{ marginTop: 16, fontSize: 12, color: "var(--color-muted)" }}>
+          <p className="mt-4 text-xs text-muted-foreground">
             This panel only ever shows safe values. API keys, SQL connection strings, and other secrets are never sent
             to the browser. Change provider settings via Terraform variables and redeploy.
           </p>

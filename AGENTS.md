@@ -11,7 +11,7 @@ A production-shaped, cheap-by-default Azure deployment of a ChatGPT-style chat a
 | Layer | Tech | Location |
 | --- | --- | --- |
 | Backend | Node.js 20, Express, TypeScript (strict), Pino, `pg`, `openai` SDK | `backend/` |
-| Frontend | React, Vite, Nginx (reverse proxy at runtime) | `frontend/` |
+| Frontend | React, Vite, Tailwind CSS v4, Nginx (reverse proxy at runtime) | `frontend/` |
 | Database | PostgreSQL (in-memory fallback when `PG_*` env vars are unset) | `backend/src/db/` |
 | Infra | Terraform → Azure Container Apps + Postgres Flexible Server + ACR + Log Analytics | `infra/` |
 | CI/CD | GitHub Actions over OIDC (no stored Azure credentials) | `.github/workflows/` |
@@ -26,8 +26,8 @@ The most common edits, in the order most forks make them:
 | System prompt | `backend/src/config.ts:86` | Set `AI_SYSTEM_PROMPT` env var (Terraform variable: `ai_system_prompt`) |
 | AI provider | `backend/src/services/ai/aiClient.ts:25` | Set `AI_PROVIDER` to `mock`, `azure_openai`, or `openai_compatible` |
 | Add a new provider | new `backend/src/services/ai/<name>.ts` | Implement the `AIProvider` interface in `aiClient.ts:6`, register a `case` in the switch, extend `AIProviderName` in `backend/src/config.ts:3`, extend the validation in `infra/variables.tf` |
-| Branding (CSS variables) | `frontend/src/styles/global.css:2-24` | Edit `:root` variables (`--color-primary`, `--color-sidebar`, etc.) |
-| App name / title | env `APP_NAME` + `frontend/index.html` `<title>` | `APP_NAME` flows to `/api/config` and is rendered in the sidebar header (`frontend/src/components/ChatSidebar.tsx`) and the main header (`frontend/src/components/ChatLayout.tsx:134`) |
+| Branding (theme + layout chrome) | `frontend/src/styles/theme.css` (`.dark` / `@theme inline`) and Tailwind classes in `frontend/src/components/*.tsx` | Adjust CSS variables or utility colors (e.g. `#1e3a8a`) |
+| App name / title | env `APP_NAME` + `frontend/index.html` `<title>` | `APP_NAME` flows to `/api/config` and is rendered in the sidebar title and main header (`ChatSidebar`, `ChatLayout`) |
 | Starter prompts | `frontend/src/components/ChatLayout.tsx:13` | Edit the `STARTER_PROMPTS` array |
 | DB schema | `backend/src/db/schema.sql` | Add idempotent DDL (`CREATE ... IF NOT EXISTS`) and bump `SCHEMA_VERSION` in `backend/src/db/migrations.ts:7` |
 | Auth seam | `backend/src/middleware/authPlaceholder.ts` | No-op when `AUTH_ENABLED=false`. See `docs/customization.md` for Easy Auth / Entra wiring |

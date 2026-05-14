@@ -27,7 +27,7 @@ AI_MODEL=gpt-4.1-mini
 ```
 
 - Starter prompts (`frontend/src/components/ChatLayout.tsx`): "How many vacation days do I have?", "What's the parental leave policy?", "When is open enrollment?", "How do I expense a business trip?"
-- Branding (`frontend/src/styles/global.css`): set `--color-primary` to ACME's brand color.
+- Branding (`frontend/src/styles/theme.css`): edit variables under `.dark` (and `@theme inline` if you add new tokens), or adjust Tailwind utility colors in `frontend/src/components/`.
 - Auth: **mandatory** — wire Easy Auth + Microsoft Entra ID so only ACME staff can access (see [Adding authentication](#adding-authentication) below).
 - Schema: add a `policy_documents` table (id, title, body, last_reviewed_at) plus an `embeddings` column once you adopt `pgvector` (see [`follow-ups.md#2-add-pgvector-from-day-one`](follow-ups.md#2-add-pgvector-from-day-one)) for retrieval.
 
@@ -47,9 +47,9 @@ AI_MODEL=gpt-4.1-mini
 
 ## Branding
 
-- Colours: `frontend/src/styles/global.css` — change CSS variables under `:root`.
+- Colours: `frontend/src/styles/theme.css` — change variables under `.dark` (background, primary, borders) and/or Tailwind classes in the layout components.
 - App title: `frontend/index.html` (`<title>`) and the value returned by `GET /api/config` (driven by the `APP_NAME` env var).
-- Sidebar header: `frontend/src/components/ChatSidebar.tsx` (`<header>`).
+- Sidebar title: `frontend/src/components/ChatSidebar.tsx` (uses `appName` from config).
 
 ## System prompt
 

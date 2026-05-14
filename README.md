@@ -50,7 +50,7 @@ The single source of truth for customization is [`docs/customization.md`](docs/c
 | System prompt | `AI_SYSTEM_PROMPT` env var (Terraform `ai_system_prompt`) | One line |
 | AI provider + credentials | `AI_PROVIDER` + matching endpoint / API key | A few env vars |
 | App name | `APP_NAME` env var (flows to `/api/config` and the UI header) | One line |
-| Branding colors | `frontend/src/styles/global.css` (CSS variables in `:root`) | A few lines |
+| Branding colors | `frontend/src/styles/theme.css` (`.dark` tokens) and Tailwind utilities in chat components | Theme tokens + a few hex classes |
 | Starter prompts | `frontend/src/components/ChatLayout.tsx` (`STARTER_PROMPTS`) | Edit an array |
 | Schema additions | `backend/src/db/schema.sql` + bump `SCHEMA_VERSION` in `backend/src/db/migrations.ts` | New table + queries |
 | Authentication | `backend/src/middleware/authPlaceholder.ts` (Easy Auth or Entra) | Production prerequisite |

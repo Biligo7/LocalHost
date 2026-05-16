@@ -28,8 +28,7 @@ Edit `frontend/.env` and set **Supabase** values (see [Supabase authentication](
 docker compose up --build
 ```
 
-Open <http://localhost:8080>. The default AI provider is `mock`, so chat works without any model credentials.
-Docker Compose reads backend AI settings from `backend/.env`; set `AI_PROVIDER=openai_compatible` there to use OpenAI locally.
+Open <http://localhost:8080>. Put AI settings in **`backend/.env`** (created from the `cp` above): e.g. `OPENAI_API_KEY` and `AI_PROVIDER=openai_compatible` (or leave provider as `mock` and only set the key — the backend will still pick OpenAI when the key is present). **`docker-compose.yml` loads that file into the backend container** and overrides `PG_*` so the app talks to the Compose Postgres service, not `localhost`.
 
 | URL | What it serves |
 | --- | --- |

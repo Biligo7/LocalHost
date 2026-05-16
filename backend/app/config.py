@@ -1,25 +1,29 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Always load backend/.env (directory that contains the `app` package), not CWD-relative ".env".
+_BACKEND_ROOT = Path(__file__).resolve().parent.parent
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_BACKEND_ROOT / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
 
     port: int = 3000
-    app_name: str = "RAFINAI"
+    app_name: str = "Local Host"
     app_env: str = "local"
     log_level: str = "info"
 
     ai_provider: Literal["mock", "azure_openai", "openai_compatible"] = "mock"
     ai_model: str = "mock-gpt"
-    ai_system_prompt: str = "You are RAFINAI, an AI-powered sustainable trail companion for Greece."
+    ai_system_prompt: str = "You are Local Host, an AI-powered sustainable trail companion for Greece."
     ai_temperature: float = 0.4
     ai_max_tokens: int = 2000
     ai_max_history_messages: int = 20
@@ -47,6 +51,31 @@ class Settings(BaseSettings):
     @property
     def sql_enabled(self) -> bool:
         return bool(self.pg_host and self.pg_database and self.pg_user and self.pg_password)
+
+    @property
+    def resolved_ai_provider(self) -> Literal["mock", "azure_openai", "openai_compatible"]:
+        """Effective provider: explicit AI_PROVIDER wins; else infer from credentials."""
+        if self.ai_provider != "mock":
+            return self.ai_provider
+        if self.openai_api_key.strip():
+            return "openai_compatible"
+        if (
+            self.azure_openai_endpoint.strip()
+            and self.azure_openai_api_key.strip()
+            and self.azure_openai_deployment.strip()
+        ):
+            return "azure_openai"
+        return "mock"
+
+    @property
+    def resolved_chat_model(self) -> str:
+        """Model id passed to the chat API (deployment name for Azure, model id for OpenAI)."""
+        r = self.resolved_ai_provider
+        if r == "openai_compatible":
+            return self.openai_model.strip() or self.ai_model
+        if r == "azure_openai":
+            return self.azure_openai_deployment.strip() or self.ai_model
+        return self.ai_model
 
 
 settings = Settings()

@@ -61,25 +61,34 @@ async def generate_chat_response(
     start = time.monotonic()
     full = ""
 
+    chat_model = settings.resolved_chat_model
+
     try:
         async for token in provider.stream_chat_completion(
             messages=messages,
-            model=settings.ai_model,
+            model=chat_model,
             temperature=settings.ai_temperature,
             max_tokens=settings.ai_max_tokens,
             request_id=request_id,
         ):
             full += token
             on_token(token)
-    except Exception:
+    except Exception as exc:
         latency_ms = int((time.monotonic() - start) * 1000)
-        logger.error("AI provider error", request_id=request_id, chat_id=chat_id, latency_ms=latency_ms)
+        logger.exception(
+            "AI provider error",
+            request_id=request_id,
+            chat_id=chat_id,
+            latency_ms=latency_ms,
+            error_type=type(exc).__name__,
+            error_message=str(exc),
+        )
         try:
             await repo.insert_message(
                 chat_id, "assistant", full,
                 message_id=assistant_message_id,
                 provider=provider.name,
-                model=settings.ai_model,
+                model=chat_model,
                 latency_ms=latency_ms,
                 error_code="AI_PROVIDER_ERROR",
             )
@@ -93,7 +102,7 @@ async def generate_chat_response(
         chat_id, "assistant", full,
         message_id=assistant_message_id,
         provider=provider.name,
-        model=settings.ai_model,
+        model=chat_model,
         latency_ms=latency_ms,
     )
 
@@ -102,7 +111,7 @@ async def generate_chat_response(
         request_id=request_id,
         chat_id=chat_id,
         provider=provider.name,
-        model=settings.ai_model,
+        model=chat_model,
         latency_ms=latency_ms,
     )
 

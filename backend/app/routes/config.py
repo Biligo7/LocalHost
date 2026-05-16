@@ -13,8 +13,8 @@ async def get_config() -> AppConfigResponse:
     return AppConfigResponse(
         appName=settings.app_name,
         environment=settings.app_env,
-        aiProvider=settings.ai_provider,
-        model=settings.ai_model,
+        aiProvider=settings.resolved_ai_provider,
+        model=settings.resolved_chat_model,
         streamingEnabled=True,
         authEnabled=settings.auth_enabled,
     )

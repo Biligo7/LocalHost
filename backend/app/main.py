@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -35,7 +36,14 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("Skipping migrations (RUN_MIGRATIONS_ON_STARTUP=false)")
 
-    logger.info("Backend listening", port=settings.port, env=settings.app_env)
+    logger.info(
+        "Backend listening",
+        port=settings.port,
+        env=settings.app_env,
+        ai_provider_configured=settings.ai_provider,
+        ai_provider_resolved=settings.resolved_ai_provider,
+        env_file=str(Path(__file__).resolve().parent.parent / ".env"),
+    )
     yield
 
     await close_pool()

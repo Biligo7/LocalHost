@@ -27,6 +27,8 @@ services:
         # networks where PyPI's certificate chain verifies normally.
         PIP_EXTRA_INSTALL_ARGS: "--trusted-host pypi.org --trusted-host files.pythonhosted.org"
     container_name: aichat-backend
+    # AI_* and OPENAI_* come from ./backend/.env (copy from backend/.env.example).
+    # Values below override the file — keeps Docker Postgres, not localhost from .env.
     env_file:
       - ./backend/.env
     environment:

@@ -15,7 +15,8 @@ def get_ai_provider():
     if _cached_provider is not None:
         return _cached_provider
 
-    if settings.ai_provider == "azure_openai":
+    resolved = settings.resolved_ai_provider
+    if resolved == "azure_openai":
         from app.services.ai.azure_openai_provider import AzureOpenAIProvider
         _cached_provider = AzureOpenAIProvider(
             endpoint=settings.azure_openai_endpoint,
@@ -23,7 +24,7 @@ def get_ai_provider():
             deployment=settings.azure_openai_deployment,
             api_version=settings.azure_openai_api_version,
         )
-    elif settings.ai_provider == "openai_compatible":
+    elif resolved == "openai_compatible":
         from app.services.ai.openai_provider import OpenAICompatibleProvider
         _cached_provider = OpenAICompatibleProvider(
             api_key=settings.openai_api_key,
@@ -34,5 +35,11 @@ def get_ai_provider():
         from app.services.ai.mock_provider import mock_provider
         _cached_provider = mock_provider
 
-    logger.info("AI provider selected", provider=_cached_provider.name, model=settings.ai_model)
+    logger.info(
+        "AI provider selected",
+        configured=settings.ai_provider,
+        resolved=resolved,
+        provider_impl=_cached_provider.name,
+        model=settings.resolved_chat_model,
+    )
     return _cached_provider

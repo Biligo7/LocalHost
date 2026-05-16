@@ -35,6 +35,13 @@ export type Trail = {
 
 export const TRAIL_CARD_MARKER = /\[\[trails:([a-z0-9,\-]+)\]\]/i;
 
+/** Extract trail ids from an assistant message (mock or real model). */
+export function parseTrailIdsFromAssistantText(content: string): string[] {
+  const match = content.match(TRAIL_CARD_MARKER);
+  if (!match) return [];
+  return match[1].split(",").map((s) => s.trim()).filter(Boolean);
+}
+
 // Build a plausible mock polyline around a trail center.
 // Replace with OpenRouteService GET /v2/directions/foot-hiking when wired.
 function mockRoute(lat: number, lng: number, seed: number): [number, number][] {

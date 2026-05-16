@@ -30,3 +30,10 @@ resource_name_suffix = "abc123" # 3-12 lowercase alphanumeric
 # azure_openai_deployment  = "gpt-4.1-mini"
 # azure_openai_api_version = "2024-10-21"
 # Pass azure_openai_api_key through TF_VAR_azure_openai_api_key.
+
+# Official OpenAI (api.openai.com) — not Azure:
+# ai_provider     = "openai_compatible"
+# ai_model        = "gpt-4o-mini"
+# openai_base_url = "https://api.openai.com/v1"
+# openai_model    = "gpt-4o-mini"
+# Pass the secret only via env: export TF_VAR_openai_api_key="sk-..." (do not put the key in this file).

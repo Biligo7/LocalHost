@@ -212,8 +212,8 @@ export function MapPanel({
             >
               <Popup>
                 <div style={{ fontFamily: "Inter, sans-serif", minWidth: 160 }}>
-                  <div style={{ fontSize: 11, color: WAYPOINT_STYLE[w.kind]?.bg ?? "#22c55e", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                    {WAYPOINT_STYLE[w.kind]?.label ?? "Feature"}
+                  <div style={{ fontSize: 11, color: WAYPOINT_STYLE[w.kind as WaypointKind]?.bg ?? "#22c55e", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    {WAYPOINT_STYLE[w.kind as WaypointKind]?.label ?? "Feature"}
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
                     {w.name}

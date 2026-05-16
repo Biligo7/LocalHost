@@ -1,9 +1,9 @@
-// frontend/src/components/MapPanel.tsx
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Popup, CircleMarker, Polyline, Marker, useMap, useMapEvents } from "react-leaflet";
-import { useQuery } from "@tanstack/react-query";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { getTrailById, type Trail, type WaypointKind } from "@/lib/trails";
+import { useTrails } from "@/hooks/use-trails";
 import { CloudRain, Loader2 } from "lucide-react";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -22,8 +22,6 @@ const ICONIC = [
   { name: "Meteora", lat: 39.7217, lng: 21.6306 },
   { name: "Samaria", lat: 35.2989, lng: 23.9658 },
 ];
-
-export type WaypointKind = "shelter" | "spring" | "biodiversity";
 
 const WAYPOINT_STYLE: Record<WaypointKind, { emoji: string; bg: string; label: string }> = {
   shelter: { emoji: "🏠", bg: "#0284c7", label: "Shelter" },
@@ -44,10 +42,11 @@ function waypointDivIcon(kind: WaypointKind) {
       </div>
     `,
     iconSize: [32, 32],
-    iconAnchor: [16, 32], 
+    iconAnchor: [16, 32],
     popupAnchor: [0, -32],
   });
 }
+
 function MapZoomListener({ onZoomChange }: { onZoomChange: (zoom: number) => void }) {
   useMapEvents({
     zoomend: (e) => {
@@ -58,19 +57,19 @@ function MapZoomListener({ onZoomChange }: { onZoomChange: (zoom: number) => voi
   return null;
 }
 
-function overrunDivIcon(name: string) {
+function overrunDivIcon(_name: string) {
   return L.divIcon({
     className: "pf-overrun-pin",
     html: `
       <div style="position: relative; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
         <div style="
-          position: absolute; width: 100%; height: 100%; border-radius: 50%; 
+          position: absolute; width: 100%; height: 100%; border-radius: 50%;
           background: #ef4444; opacity: 0.4; transform: scale(1);
           animation: pinPulse 2s infinite ease-out;
         "></div>
         <div style="
-          width: 12px; height: 12px; border-radius: 50%; 
-          background: #ef4444; border: 2px solid #ffffff; 
+          width: 12px; height: 12px; border-radius: 50%;
+          background: #ef4444; border: 2px solid #ffffff;
           box-shadow: 0 0 10px rgba(239, 68, 68, 0.8); z-index: 10;
         "></div>
       </div>
@@ -93,6 +92,7 @@ export function MapPanel({
   rerouting?: boolean;
   onRerouteForRain?: (trail: any) => void;
 }) {
+  const { trails: allTrails, source, loading: trailsLoading } = useTrails();
   const [mounted, setMounted] = useState(false);
   const [liveData, setLiveData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -112,16 +112,9 @@ export function MapPanel({
       document.head.appendChild(style);
     }
   }, []);
-  const popularOnlyFlag = currentZoom < 9;
 
-  const { data: databaseTrails = [] } = useQuery<any[]>({
-    queryKey: ["trails", popularOnlyFlag],
-    queryFn: () => fetch(`/api/trails?popular_only=${popularOnlyFlag}`).then((res) => res.json()),
-  });
-
-  // Guard to ensure array type parameters are valid
-  const trailList = Array.isArray(databaseTrails) ? databaseTrails : [];
-  const focusedTrail = focused ? trailList.find((t) => t.id === focused.id) : null;
+  const trailList = Array.isArray(allTrails) ? allTrails : [];
+  const focusedTrail = focused ? trailList.find((t) => t.id === focused.id) ?? getTrailById(focused.id) : null;
 
   useEffect(() => {
     if (!focusedTrail) {
@@ -154,26 +147,23 @@ export function MapPanel({
   return (
     <div className="relative h-full w-full">
       <MapContainer
-      center={[38.5, 23.5]}
-      zoom={6}
-      scrollWheelZoom
-      className="h-full w-full"
-      maxBounds={[[34.5, 19.0], [42.5, 30.5]]}
-      maxBoundsViscosity={1}
-    >
-      {/* Layer 1: The Raw Satellite Photos (Base Layer) */}
-      <TileLayer
-        attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-      />
+        center={[38.5, 23.5]}
+        zoom={6}
+        scrollWheelZoom
+        className="h-full w-full"
+        maxBounds={[[34.5, 19.0], [42.5, 30.5]]}
+        maxBoundsViscosity={1}
+      >
+        <TileLayer
+          attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+        />
+        <TileLayer
+          attribution='&copy; Esri Reference Labels'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+        />
 
-      {/* Layer 2: The Transparent Text Overlay (Adds Cities, Borders & Names) */}
-      <TileLayer
-        attribution='&copy; Esri Reference Labels'
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-      />
-
-      <MapZoomListener onZoomChange={(zoom) => setCurrentZoom(zoom)} />
+        <MapZoomListener onZoomChange={(zoom) => setCurrentZoom(zoom)} />
 
         {ICONIC.map((p) => (
           <Marker key={p.name} position={[p.lat, p.lng]} icon={overrunDivIcon(p.name)}>
@@ -186,9 +176,61 @@ export function MapPanel({
           </Marker>
         ))}
 
+        {/* Polylines from cached trail routes */}
+        {trailList.filter((t) => highlightedIds.includes(t.id) && t.route?.length > 0).map((t) => {
+          const isFocused = focused?.id === t.id;
+          const color = isFocused && rerouting
+            ? "#38bdf8"
+            : isFocused
+              ? "#0284c7"
+              : "#556B2F";
+          return (
+            <Polyline
+              key={`route-${t.id}-${rerouting && isFocused ? "rain" : "dry"}`}
+              positions={t.route}
+              pathOptions={{
+                color,
+                weight: isFocused ? 5 : 3.5,
+                opacity: isFocused ? 0.95 : 0.7,
+                dashArray: rerouting && isFocused ? "8 6" : undefined,
+                lineCap: "round",
+                lineJoin: "round",
+              }}
+            />
+          );
+        })}
+
+        {/* Nature waypoints — mock offset-based (from local trail data) */}
+        {focusedTrail?.waypoints?.map((w: any, i: number) => {
+          const lat = w.lat ?? (focusedTrail.lat + (w.dLat ?? 0));
+          const lng = w.lng ?? (focusedTrail.lng + (w.dLng ?? 0));
+          return (
+            <Marker
+              key={`wp-${focusedTrail.id}-${i}`}
+              position={[lat, lng]}
+              icon={waypointDivIcon(w.kind)}
+            >
+              <Popup>
+                <div style={{ fontFamily: "Inter, sans-serif", minWidth: 160 }}>
+                  <div style={{ fontSize: 11, color: WAYPOINT_STYLE[w.kind]?.bg ?? "#22c55e", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    {WAYPOINT_STYLE[w.kind]?.label ?? "Feature"}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
+                    {w.name}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
+                    via iNaturalist · community-verified
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+
+        {/* Live telemetry overlay — from /api/trails/:name/telemetry */}
         {liveData && (
           <>
-            {liveData.geometry && (
+            {liveData.geometry?.length > 0 && (
               <Polyline
                 positions={liveData.geometry}
                 pathOptions={{
@@ -196,7 +238,7 @@ export function MapPanel({
                   weight: 5,
                   opacity: 0.95,
                   lineCap: "round",
-                  lineJoin: "round"
+                  lineJoin: "round",
                 }}
               />
             )}
@@ -237,7 +279,7 @@ export function MapPanel({
           </>
         )}
 
-        {/* 🔧 FIXED: Added explicit Array.isArray check to clear out the minified type errors completely */}
+        {/* Trail centroids */}
         {trailList.map((t) => {
           const isHighlighted = highlightedIds.includes(t.id);
           return (
@@ -262,7 +304,7 @@ export function MapPanel({
         <FlyToTrail focused={focused} liveData={liveData} databaseTrails={trailList} />
       </MapContainer>
 
-      <Legend />
+      <Legend trailCount={trailList.length} source={source} loading={trailsLoading || loading} />
 
       {loading && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[400] flex items-center gap-2 rounded-full bg-background/95 px-4 py-1.5 text-xs font-semibold shadow-xl border animate-fade-in backdrop-blur-md">
@@ -317,20 +359,25 @@ function FlyToTrail({ focused, liveData, databaseTrails }: { focused: Focused; l
     if (liveData) {
       map.flyTo([liveData.lat, liveData.lng], 13, { duration: 1.5 });
     } else if (focused) {
-      const trail = databaseTrails.find((t) => t.id === focused.id);
+      const trail = databaseTrails.find((t: any) => t.id === focused.id);
       if (trail) map.flyTo([trail.lat, trail.lng], 11, { duration: 1.4 });
     }
   }, [focused, liveData, databaseTrails, map]);
   return null;
 }
 
-function Legend() {
+function Legend({ trailCount, source, loading }: { trailCount: number; source: "mock" | "live"; loading: boolean }) {
   return (
     <div className="absolute bottom-4 left-4 z-[400] rounded-xl border border-white/10 bg-black/70 p-3 text-xs text-white shadow-2xl backdrop-blur-md">
       <div className="mb-2 font-semibold tracking-wide text-gray-200">Topographic Sat-Overlay</div>
       <div className="flex items-center gap-2">
         <span className="inline-block size-3 rounded-full border border-white bg-[#22c55e]" />
-        <span className="text-gray-300">Verified Hidden Gem</span>
+        <span className="text-gray-300">
+          {loading ? "Loading trails…" : `${trailCount} trails`}
+          {source === "live" && !loading && (
+            <span className="ml-1 text-[10px] text-green-400">OSM</span>
+          )}
+        </span>
       </div>
       <div className="mt-2 flex items-center gap-2">
         <span className="inline-block size-3 rounded-full border border-white bg-[#0284c7]" />

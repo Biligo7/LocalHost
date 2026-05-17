@@ -63,12 +63,16 @@ export function ChatPanel({
   threadId,
   onAssistantTrails,
   onPinTrail,
+  onSaveTrail,
+  savedTrailIds = [],
   injection,
   onInjectionConsumed,
 }: {
   threadId: string;
   onAssistantTrails: (ids: string[]) => void;
   onPinTrail: (id: string) => void;
+  onSaveTrail?: (id: string) => void;
+  savedTrailIds?: string[];
   injection?: Injection;
   onInjectionConsumed?: () => void;
 }) {
@@ -76,6 +80,7 @@ export function ChatPanel({
   const [input, setInput] = useState("");
   const [attachedPhoto, setAttachedPhoto] = useState<PendingPhoto | null>(null);
   const [isPhotoDragActive, setIsPhotoDragActive] = useState(false);
+  const [streamingAssistant, setStreamingAssistant] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,6 +101,7 @@ export function ChatPanel({
 
   useEffect(() => {
     inputRef.current?.focus();
+    setStreamingAssistant(null);
   }, [threadId]);
 
   useEffect(() => {
@@ -154,13 +160,18 @@ export function ChatPanel({
       try {
         const full = await streamChatMessage(threadId, text, {
           onOpen: () => {
+            setStreamingAssistant("");
             qc.invalidateQueries({ queryKey: ["messages", threadId] });
           },
-          onToken: () => {},
+          onToken: (delta) => {
+            setStreamingAssistant((current) => `${current ?? ""}${delta}`);
+          },
         }, images);
 
+        setStreamingAssistant(full);
         onAssistantTrails(parseTrailIdsFromAssistantText(full));
       } catch (streamErr) {
+        setStreamingAssistant(null);
         if (!isOfflineOnlyError(streamErr)) {
           throw streamErr;
         }
@@ -187,12 +198,19 @@ export function ChatPanel({
     },
   });
 
+  const showStreamingAssistant =
+    streamingAssistant !== null &&
+    streamingAssistant.length > 0 &&
+    !messages.some(
+      (m) => m.role === "assistant" && m.content === streamingAssistant,
+    );
+
   useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
       behavior: "smooth",
     });
-  }, [messages, send.isPending]);
+  }, [messages, send.isPending, streamingAssistant]);
 
   const submitText = (text: string, photoOverride?: PendingPhoto | null) => {
     const photo = photoOverride === undefined ? attachedPhoto : photoOverride;
@@ -286,8 +304,20 @@ export function ChatPanel({
                 content={m.content}
                 metadata={m.metadata}
                 onPinTrail={onPinTrail}
+                onSaveTrail={onSaveTrail}
+                savedTrailIds={savedTrailIds}
               />
             ))}
+            {showStreamingAssistant && (
+              <MessageBubble
+                key="streaming-assistant"
+                role="assistant"
+                content={streamingAssistant ?? ""}
+                onPinTrail={onPinTrail}
+                onSaveTrail={onSaveTrail}
+                savedTrailIds={savedTrailIds}
+              />
+            )}
           </div>
         )}
       </div>
@@ -471,11 +501,15 @@ function MessageBubble({
   content,
   metadata,
   onPinTrail,
+  onSaveTrail,
+  savedTrailIds = [],
 }: {
   role: "user" | "assistant";
   content: string;
   metadata?: Record<string, unknown> | null;
   onPinTrail?: (id: string) => void;
+  onSaveTrail?: (id: string) => void;
+  savedTrailIds?: string[];
 }) {
   const isUser = role === "user";
   const imagePreviews = isUser ? getMessageImagePreviews(metadata) : [];
@@ -553,7 +587,13 @@ function MessageBubble({
         {trails.length > 0 && (
           <div className="flex flex-col gap-2.5">
             {trails.map((t) => (
-              <ItineraryCard key={t.id} trail={t} onPin={onPinTrail ?? (() => {})} />
+              <ItineraryCard
+                key={t.id}
+                trail={t}
+                onPin={onPinTrail ?? (() => {})}
+                onSave={onSaveTrail}
+                isSaved={savedTrailIds.includes(t.id)}
+              />
             ))}
           </div>
         )}

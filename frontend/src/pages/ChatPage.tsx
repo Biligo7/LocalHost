@@ -1,15 +1,18 @@
-import { useParams } from "react-router-dom";
+import { useOutletContext, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ChatPanel } from "@/components/ChatPanel";
 import { MapPanel } from "@/components/MapPanel";
 import { toast } from "sonner";
 import { getTrailById, ensureTrailsLoaded, type Trail } from "@/lib/trails";
 import { api } from "@/api/client";
+import type { AppOutletContext } from "@/components/AppLayout";
 
 type Injection = { text: string; trailIds: string[]; nonce: number } | null;
 
 export default function ChatPage() {
   const { threadId } = useParams<{ threadId: string }>();
+  const { savedTrailIds, onSaveTrail, selectedSavedTrail } =
+    useOutletContext<AppOutletContext>();
   const [highlighted, setHighlighted] = useState<string[]>([]);
   const [focused, setFocused] = useState<{
     id: string;
@@ -28,6 +31,18 @@ export default function ChatPage() {
   // Pre-load live trail catalog from the backend
   useEffect(() => { ensureTrailsLoaded(); }, []);
 
+  useEffect(() => {
+    if (!selectedSavedTrail) return;
+    const trail = getTrailById(selectedSavedTrail.id);
+    if (!trail) return;
+
+    setHighlighted((h) => (h.includes(trail.id) ? h : [...h, trail.id]));
+    setFocused({ id: trail.id, nonce: selectedSavedTrail.nonce });
+    toast(`Focused: ${trail.name}`, {
+      description: `Centered the map on ${trail.region}.`,
+    });
+  }, [selectedSavedTrail]);
+
   const handlePin = (id: string) => {
     const trail = getTrailById(id);
     if (!trail) return;
@@ -36,6 +51,22 @@ export default function ChatPage() {
     toast.success(`Pinned: ${trail.name}`, {
       description: `Centered the map on ${trail.region}.`,
     });
+  };
+
+  const handleSaveTrail = (id: string) => {
+    const trail = getTrailById(id);
+    if (!trail) return;
+
+    const result = onSaveTrail(id);
+    if (result === "added") {
+      toast.success(`Saved: ${trail.name}`, {
+        description: "Added to Trails in the sidebar.",
+      });
+    } else if (result === "exists") {
+      toast("Already saved", {
+        description: `${trail.name} is already in Trails.`,
+      });
+    }
   };
 
   const handleRerouteForRain = async (trail: Trail) => {
@@ -106,6 +137,8 @@ export default function ChatPage() {
           threadId={threadId}
           onAssistantTrails={setHighlighted}
           onPinTrail={handlePin}
+          onSaveTrail={handleSaveTrail}
+          savedTrailIds={savedTrailIds}
           injection={injection}
           onInjectionConsumed={() => setInjection(null)}
         />

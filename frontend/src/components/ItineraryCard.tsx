@@ -1,4 +1,14 @@
-import { Clock, Leaf, MapPin, Mountain, ShieldAlert, ShieldCheck, TriangleAlert } from "lucide-react";
+import {
+  BookmarkCheck,
+  BookmarkPlus,
+  Clock,
+  Leaf,
+  MapPin,
+  Mountain,
+  ShieldAlert,
+  ShieldCheck,
+  TriangleAlert,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Trail } from "@/lib/trails";
 
@@ -20,9 +30,13 @@ const DIFFICULTY_STYLES: Record<Trail["difficulty"], { label: string; cls: strin
 export function ItineraryCard({
   trail,
   onPin,
+  onSave,
+  isSaved = false,
 }: {
   trail: Trail;
   onPin: (id: string) => void;
+  onSave?: (id: string) => void;
+  isSaved?: boolean;
 }) {
   const diff = DIFFICULTY_STYLES[trail.difficulty];
   const safetyTone = {
@@ -133,14 +147,42 @@ export function ItineraryCard({
           <span className="truncate">{trail.safety.label}</span>
         </div>
 
-        {/* Action */}
-        <button
-          onClick={() => onPin(trail.id)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--gradient-aegean)] px-3 py-2 text-[13px] font-semibold text-primary-foreground shadow-[var(--shadow-soft)] transition hover:opacity-95 active:scale-[0.99]"
-        >
-          <MapPin className="size-3.5" />
-          Pin to map
-        </button>
+        {/* Actions */}
+        {onSave ? (
+          <div className="grid grid-cols-[2.5rem_1fr] gap-2">
+            <button
+              type="button"
+              onClick={() => onPin(trail.id)}
+              className="grid size-10 place-items-center rounded-xl bg-[var(--gradient-aegean)] text-primary-foreground shadow-[var(--shadow-soft)] transition hover:opacity-95 active:scale-[0.99]"
+              aria-label={`Pin ${trail.name} to map`}
+              title="Pin to map"
+            >
+              <MapPin className="size-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onSave(trail.id)}
+              disabled={isSaved}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-[13px] font-semibold text-foreground shadow-[var(--shadow-soft)] transition hover:border-primary/40 hover:text-primary disabled:cursor-default disabled:border-[oklch(0.85_0.1_145)] disabled:bg-[oklch(0.96_0.04_145)] disabled:text-[oklch(0.38_0.12_145)]"
+            >
+              {isSaved ? (
+                <BookmarkCheck className="size-3.5 shrink-0" />
+              ) : (
+                <BookmarkPlus className="size-3.5 shrink-0" />
+              )}
+              <span className="truncate">{isSaved ? "Saved" : "Save trail"}</span>
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onPin(trail.id)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-[13px] font-semibold text-primary-foreground shadow-[var(--shadow-soft)] transition hover:opacity-95 active:scale-[0.99]"
+          >
+            <MapPin className="size-3.5" />
+            Pin to map
+          </button>
+        )}
       </div>
     </div>
   );

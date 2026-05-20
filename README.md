@@ -16,15 +16,15 @@ For tooling and file-level guidance, see [`AGENTS.md`](AGENTS.md).
 </p>
 
 <p align="center">
-  <img width="100%" alt="Local Host — trail detail and chat" src="https://github.com/user-attachments/assets/91cc29cb-f367-45e7-a508-21860e168ef6" />
+  <img width="959" height="539" alt="Local Host — trail detail and chat" src="https://github.com/user-attachments/assets/f04b5281-a62e-4d04-b32c-e66bbdb6e1cc" />
 </p>
 
 <p align="center">
-  <img width="100%" alt="Local Host — map and assistant panel" src="https://github.com/user-attachments/assets/f4c13c2c-5649-4e7f-a748-a1a9315a52ee" />
+  <img width="959" height="539" alt="Local Host — map and assistant panel" src="https://github.com/user-attachments/assets/99f367c7-f20b-48e7-b8e6-9abc8b063095" />
 </p>
 
 <p align="center">
-  <img width="100%" alt="Local Host — UI overview" src="https://github.com/user-attachments/assets/2d00706d-1e13-4526-b3f8-d750e69f4864" />
+  <img width="959" height="539" alt="Local Host — UI overview" src="https://github.com/user-attachments/assets/70dc63cd-8c19-49f9-84d0-a94d0bb723d6" />
 </p>
 
 ## Architecture
